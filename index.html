@@ -169,15 +169,20 @@
   .dday-imminent { background: #fffbeb; color: #d97706; }
 
   /* Schedule table */
-  .schedule-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  .schedule-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; table-layout: fixed; }
+  .schedule-table colgroup .col-n    { width: 42px; }
+  .schedule-table colgroup .col-date { width: 90px; }
+  .schedule-table colgroup .col-time { width: 96px; }
+  .schedule-table colgroup .col-topic { width: auto; }
   .schedule-table th {
     text-align: left; padding: 8px 10px; font-size: 0.78rem; font-weight: 600;
     color: #94a3b8; border-bottom: 1px solid #e2e8f0; text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.4px; white-space: nowrap;
   }
   .schedule-table td {
     padding: 8px 10px; font-size: 0.85rem; color: #334155;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
   }
   .schedule-table tr:last-child td { border-bottom: none; }
   .schedule-table tr.past-row td { color: #cbd5e1; text-decoration: line-through; }
@@ -515,7 +520,7 @@ function renderCards(list) {
       if (sd < TODAY) rowClass = 'past-row';
       else if (sd.getTime() === TODAY.getTime()) rowClass = 'today-row';
       else if (!cls.sessions.some(ss => { const ssd = parseDate(ss.date); return ssd >= TODAY && ssd < sd; })) rowClass = 'next-row';
-      return `<tr class="${rowClass}"><td>${s.n}회</td><td>${formatKR(sd)}</td><td>${s.time}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.topic}</td></tr>`;
+      return `<tr class="${rowClass}"><td>${s.n}회</td><td>${formatKR(sd)}</td><td>${s.time}</td><td>${s.topic}</td></tr>`;
     }).join('');
 
     const statusBadge = status === 'ongoing' ? '<span class="card-badge badge-ongoing">진행 중</span>'
@@ -540,6 +545,7 @@ function renderCards(list) {
             ${dday.label} ${dday.text}
           </div>
           <table class="schedule-table">
+            <colgroup><col class="col-n"><col class="col-date"><col class="col-time"><col class="col-topic"></colgroup>
             <thead><tr><th>회차</th><th>날짜</th><th>시간</th><th>주제</th></tr></thead>
             <tbody>${scheduleRows}</tbody>
           </table>

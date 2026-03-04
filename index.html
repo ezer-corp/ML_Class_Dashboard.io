@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>멘토라이브러리 클래스 대시보드</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    background: #f0f2f8;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(99,102,241,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(59,130,246,0.06) 0%, transparent 50%);
+    color: #1e293b;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 28px 24px; }
+
+  /* ── Glass base ── */
+  .glass {
+    background: rgba(255,255,255,0.62);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.75);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03);
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 32px; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-logo {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; color: #fff; font-weight: 700;
+  }
+  .header h1 { font-size: 1.6rem; font-weight: 700; color: #0f172a; letter-spacing: -0.3px; }
+  .header .subtitle { font-size: 0.9rem; color: #94a3b8; font-weight: 400; margin-top: 2px; }
+  .today-badge {
+    padding: 8px 18px; border-radius: 10px; font-size: 0.95rem; font-weight: 500;
+    background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+  }
+
+  /* ── Stats ── */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card {
+    padding: 20px 16px; text-align: center; transition: transform 0.15s;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 16px 16px 0 0;
+  }
+  .stat-card:nth-child(1)::before { background: #6366f1; }
+  .stat-card:nth-child(2)::before { background: #3b82f6; }
+  .stat-card:nth-child(3)::before { background: #10b981; }
+  .stat-card:nth-child(4)::before { background: #8b5cf6; }
+  .stat-card:hover { transform: translateY(-2px); }
+  .stat-value { font-size: 2.1rem; font-weight: 700; color: #0f172a; }
+  .stat-label { font-size: 0.88rem; color: #94a3b8; margin-top: 4px; font-weight: 500; }
+
+  /* ── Filter ── */
+  .filter-bar { display: flex; gap: 6px; margin-bottom: 20px; }
+  .filter-btn {
+    padding: 8px 20px; border-radius: 10px;
+    border: 1px solid #e2e8f0; background: #fff; color: #64748b;
+    cursor: pointer; font-size: 0.92rem; font-weight: 500;
+    transition: all 0.15s; font-family: inherit;
+  }
+  .filter-btn:hover { border-color: #6366f1; color: #6366f1; }
+  .filter-btn.active {
+    background: #6366f1; color: #fff; border-color: #6366f1;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+  }
+
+  /* ── Gantt ── */
+  .timeline-section { padding: 24px 28px; margin-bottom: 24px; }
+  .section-title {
+    font-size: 1.1rem; font-weight: 600; color: #0f172a; margin-bottom: 18px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title span { font-size: 1rem; }
+
+  .gantt-wrapper { overflow-x: auto; padding-bottom: 4px; }
+  .gantt { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .gantt th {
+    text-align: center; padding: 7px 3px; color: #94a3b8; font-weight: 500;
+    border-bottom: 1px solid #e2e8f0; min-width: 36px; font-size: 0.78rem;
+  }
+  .gantt td { padding: 6px 3px; vertical-align: middle; }
+  .gantt .row-label {
+    white-space: nowrap; padding-right: 16px; font-weight: 500;
+    color: #334155; min-width: 200px; font-size: 0.85rem;
+  }
+  .gantt .row-label.row-done { text-decoration: line-through; color: #94a3b8; }
+  .gantt .bar-cell { position: relative; height: 30px; }
+  .gantt .bar {
+    position: absolute; top: 3px; height: 24px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; color: #fff; font-weight: 600; white-space: nowrap;
+    min-width: 20px; transition: filter 0.15s;
+  }
+  .gantt .bar:hover { filter: brightness(1.08); }
+  .gantt .today-line {
+    position: absolute; top: -2px; bottom: -2px; width: 2px;
+    background: #ef4444; z-index: 2; border-radius: 1px;
+  }
+  .gantt .today-marker {
+    position: absolute; top: -19px; font-size: 0.7rem; color: #ef4444;
+    font-weight: 700; transform: translateX(-50%); white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Cards ── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 16px; margin-bottom: 24px; }
+
+  .class-card {
+    padding: 0; overflow: hidden; transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .class-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  .class-card.past { opacity: 0.55; }
+  .class-card.past .card-title { text-decoration: line-through; color: #94a3b8; }
+  .class-card.past .card-meta { color: #94a3b8; }
+  .class-card.past .dday-chip { text-decoration: line-through; }
+
+  .card-accent { height: 3px; width: 100%; }
+  .card-body { padding: 20px 22px 16px; }
+
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .card-title { font-size: 1.05rem; font-weight: 600; color: #0f172a; line-height: 1.4; flex: 1; margin-right: 10px; }
+  .card-badge {
+    padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;
+    white-space: nowrap; flex-shrink: 0; letter-spacing: 0.2px;
+  }
+  .badge-upcoming { background: #ecfdf5; color: #059669; }
+  .badge-ongoing { background: #eef2ff; color: #4f46e5; }
+  .badge-done { background: #f1f5f9; color: #94a3b8; }
+
+  .card-meta {
+    display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.85rem;
+    color: #64748b; margin-bottom: 12px;
+  }
+  .card-meta span { display: flex; align-items: center; gap: 3px; }
+  .sale-tag {
+    display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 0.68rem;
+    font-weight: 700; background: #fef2f2; color: #dc2626; letter-spacing: 0.3px;
+  }
+
+  .dday-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 14px; border-radius: 8px; font-size: 0.9rem; font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .dday-future { background: #f0fdf4; color: #16a34a; }
+  .dday-today { background: #fef2f2; color: #dc2626; }
+  .dday-past { background: #f8fafc; color: #94a3b8; }
+  .dday-imminent { background: #fffbeb; color: #d97706; }
+
+  /* Schedule table */
+  .schedule-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  .schedule-table th {
+    text-align: left; padding: 8px 10px; font-size: 0.78rem; font-weight: 600;
+    color: #94a3b8; border-bottom: 1px solid #e2e8f0; text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .schedule-table td {
+    padding: 8px 10px; font-size: 0.85rem; color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .schedule-table tr:last-child td { border-bottom: none; }
+  .schedule-table tr.past-row td { color: #cbd5e1; text-decoration: line-through; }
+  .schedule-table tr.today-row td { color: #dc2626; font-weight: 600; background: #fef2f2; }
+  .schedule-table tr.next-row td { color: #4f46e5; font-weight: 500; background: #eef2ff; }
+
+  .card-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 12px; border-top: 1px solid #f1f5f9;
+  }
+  .ics-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 7px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    color: #475569; cursor: pointer; text-decoration: none;
+    transition: all 0.15s; font-family: inherit;
+  }
+  .ics-btn:hover { background: #eef2ff; border-color: #6366f1; color: #4f46e5; }
+  .progress-bar-wrap {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .progress-track {
+    width: 60px; height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden;
+  }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+  .progress-text { font-size: 0.82rem; color: #94a3b8; font-weight: 500; }
+
+  /* Footer */
+  .footer {
+    text-align: center; padding: 16px; font-size: 0.82rem; color: #94a3b8;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { height: 5px; width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+  @media (max-width: 900px) {
+    .cards-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header glass">
+    <div class="header-left">
+      <div class="header-logo">M</div>
+      <div>
+        <h1>멘토라이브러리 클래스 대시보드</h1>
+        <div class="subtitle">서울특별시 강남구 영동대로85길 38 KC빌딩 9층</div>
+      </div>
+    </div>
+    <div class="today-badge" id="todayBadge"></div>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div class="filter-bar" id="filterBar"></div>
+
+  <div class="timeline-section glass" id="timelineSection">
+    <div class="section-title"><span>📊</span> 클래스 기간 차트</div>
+    <div class="gantt-wrapper" id="ganttWrapper"></div>
+  </div>
+
+  <div class="cards-grid" id="cardsGrid"></div>
+
+  <div class="footer">멘토라이브러리 © 2026 · contact@mentorlibrary.co.kr</div>
+</div>
+
+<script>
+const TODAY = new Date();
+TODAY.setHours(0,0,0,0);
+
+const COLORS = [
+  '#6366f1','#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#ec4899'
+];
+
+const classes = [
+  {
+    id: 1, icon: '🌙', name: '바이브코딩×성과관리 야간반',
+    instructor: '방병권 대표', type: 'Bootcamp', price: '350,000원',
+    sessions: [
+      { n: 1, date: '2026-03-17', time: '19:30~22:00', topic: 'System Builder — 측정하고 수집하는 구조를 만들다' },
+      { n: 2, date: '2026-03-24', time: '19:30~22:00', topic: '데이터 수집 자동화' },
+      { n: 3, date: '2026-03-31', time: '19:30~22:00', topic: '정형/비정형 데이터 분석' },
+      { n: 4, date: '2026-04-07', time: '19:30~22:00', topic: 'NotebookLM 보고서 & 넛지 시스템' },
+    ]
+  },
+  {
+    id: 2, icon: '🧠', name: '지식근로자를 위한 개인 경영 시스템 설계 워크숍 (5C)',
+    instructor: '전준수 대표', type: 'Workshop', price: '490,000원',
+    sessions: [
+      { n: 1, date: '2026-03-17', time: '19:00~21:30', topic: 'Capability' },
+      { n: 2, date: '2026-03-24', time: '19:00~21:30', topic: 'Criteria' },
+      { n: 3, date: '2026-03-31', time: '19:00~21:30', topic: 'Control' },
+      { n: 4, date: '2026-04-07', time: '19:00~21:30', topic: 'Continuity' },
+      { n: 5, date: '2026-04-14', time: '19:00~21:30', topic: 'Communication' },
+      { n: 6, date: '2026-04-21', time: '19:00~21:30', topic: 'Integration & Governance' },
+    ]
+  },
+  {
+    id: 3, icon: '🤖', name: 'AI 에이전트를 고용하라 - 리더십 클래스',
+    instructor: '강정구 소장', type: 'Intensive', price: '765,000원', originalPrice: '900,000원', saleLabel: 'TIME SALE',
+    sessions: [
+      { n: 1, date: '2026-03-19', time: '09:30~18:00', topic: 'AI 패러다임 시프트, 위임의 기술과 리더십 재정의' },
+      { n: 2, date: '2026-03-26', time: '09:30~18:00', topic: 'AI팀 설계, 안전한 AI 경영' },
+    ]
+  },
+  {
+    id: 4, icon: '📊', name: '바이브코딩×성과관리 주간반',
+    instructor: '방병권 대표', type: 'Workshop', price: '490,000원',
+    sessions: [
+      { n: 1, date: '2026-03-19', time: '10:00~17:00', topic: 'System Builder — KPI 구조화, 데이터 수집 자동화' },
+      { n: 2, date: '2026-04-02', time: '10:00~17:00', topic: '정형/비정형 분석, NotebookLM 보고서, 넛지 시스템' },
+    ]
+  },
+  {
+    id: 5, icon: '📖', name: '동양고전에서 배우는 리더의 용인술',
+    instructor: '김성회 소장', type: 'Intensive', price: '900,000원',
+    sessions: [
+      { n: 1, date: '2026-03-20', time: '09:30~18:00', topic: '인재를 보는 법 / 얻는 법 / 기르는 법' },
+      { n: 2, date: '2026-03-27', time: '09:30~18:00', topic: '인재를 쓰는 법 / 움직이는 법 / 헤어지는 법' },
+    ]
+  },
+  {
+    id: 6, icon: '👑', name: 'CEO의 인재경영 스쿨',
+    instructor: '전준수 대표', type: 'School', price: '1,200,000원',
+    sessions: [
+      { n: 1, date: '2026-02-23', time: '19:00~21:30', topic: '전략적 채용' },
+      { n: 2, date: '2026-03-09', time: '19:00~21:30', topic: 'How to Work' },
+      { n: 3, date: '2026-03-23', time: '19:00~21:30', topic: '리더십과 조직문화 — 1:1 & 피드백' },
+      { n: 4, date: '2026-04-06', time: '19:00~21:30', topic: '데이터 인재경영' },
+      { n: 5, date: '2026-04-20', time: '19:00~21:30', topic: '중간관리자 리더십' },
+      { n: 6, date: '2026-05-04', time: '19:00~21:30', topic: '성과 창출형 조직문화' },
+    ]
+  },
+  {
+    id: 7, icon: '💼', name: '성장과 성공을 돕는 리더십 스킬 복제',
+    instructor: '백종화 대표', type: 'Intensive', price: '1,200,000원',
+    sessions: [
+      { n: 1, date: '2026-03-27', time: '10:00~18:00', topic: '리더십/조직문화 트렌드, 성과관리 피드백 스킬' },
+      { n: 2, date: '2026-04-03', time: '10:00~18:00', topic: '1on1 대화 스킬' },
+      { n: 3, date: '2026-04-10', time: '10:00~18:00', topic: '시스템 구축' },
+    ]
+  },
+  {
+    id: 8, icon: '🏢', name: '주니어를 위한 조직문화 실전 - Culture LAB',
+    instructor: '오용석 멘토', type: 'Lab', price: '360,000원', originalPrice: '450,000원', saleLabel: 'TIME SALE',
+    sessions: [
+      { n: 1, date: '2026-04-01', time: '19:30~21:30', topic: '우리 회사 문제 진단 및 핵심 이슈 도출' },
+      { n: 2, date: '2026-04-03', time: '19:30~21:30', topic: '컬처핏 분석' },
+      { n: 3, date: '2026-04-08', time: '19:30~21:30', topic: '제도 설계' },
+      { n: 4, date: '2026-04-10', time: '19:30~21:30', topic: '리더 보고' },
+    ]
+  },
+];
+
+// Utilities
+function parseDate(s) { return new Date(s + 'T00:00:00'); }
+function formatKR(d) { return `${d.getMonth()+1}/${d.getDate()}(${['일','월','화','수','목','금','토'][d.getDay()]})`; }
+function diffDays(a, b) { return Math.round((a - b) / 86400000); }
+
+function getClassStatus(cls) {
+  const first = parseDate(cls.sessions[0].date);
+  const last = parseDate(cls.sessions[cls.sessions.length - 1].date);
+  if (TODAY < first) return 'upcoming';
+  if (TODAY > last) return 'done';
+  return 'ongoing';
+}
+
+function getDDay(cls) {
+  const first = parseDate(cls.sessions[0].date);
+  const last = parseDate(cls.sessions[cls.sessions.length - 1].date);
+  const status = getClassStatus(cls);
+  if (status === 'upcoming') {
+    const d = diffDays(first, TODAY);
+    return { text: `D-${d}`, type: d <= 7 ? 'imminent' : 'future', label: '개강까지' };
+  }
+  if (status === 'done') {
+    const d = diffDays(TODAY, last);
+    return { text: `D+${d}`, type: 'past', label: '종료' };
+  }
+  for (const s of cls.sessions) {
+    const sd = parseDate(s.date);
+    if (sd >= TODAY) {
+      const d = diffDays(sd, TODAY);
+      return { text: d === 0 ? 'D-Day' : `D-${d}`, type: d === 0 ? 'today' : (d <= 3 ? 'imminent' : 'future'), label: `${s.n}회차` };
+    }
+  }
+  return { text: '', type: 'past', label: '' };
+}
+
+function completedCount(cls) {
+  return cls.sessions.filter(s => parseDate(s.date) < TODAY).length;
+}
+
+// ICS generator
+function generateICS(cls) {
+  const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MentorLibrary//Dashboard//KO','CALSCALE:GREGORIAN'];
+  const loc = '서울특별시 강남구 영동대로85길 38 KC빌딩 9층 멘토라이브러리';
+  cls.sessions.forEach(s => {
+    const [startT, endT] = s.time.replace(/\s/g,'').split('~');
+    const [sh, sm] = startT.split(':');
+    const [eh, em] = endT.split(':');
+    const d = s.date.replace(/-/g,'');
+    lines.push('BEGIN:VEVENT');
+    lines.push(`DTSTART;TZID=Asia/Seoul:${d}T${sh}${sm}00`);
+    lines.push(`DTEND;TZID=Asia/Seoul:${d}T${eh}${em}00`);
+    lines.push(`SUMMARY:${cls.icon} ${cls.name} ${s.n}회차`);
+    lines.push(`DESCRIPTION:${s.topic}`);
+    lines.push(`LOCATION:${loc}`);
+    lines.push('END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+
+function downloadICS(cls) {
+  const content = generateICS(cls);
+  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `멘토라이브러리_${cls.name.replace(/\s/g,'_')}.ics`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// --- Render ---
+let activeFilter = 'all';
+
+function render() {
+  document.getElementById('todayBadge').textContent =
+    `${TODAY.getFullYear()}. ${TODAY.getMonth()+1}. ${TODAY.getDate()} ${['일','월','화','수','목','금','토'][TODAY.getDay()]}요일`;
+
+  const ongoing = classes.filter(c => getClassStatus(c) === 'ongoing').length;
+  const upcoming = classes.filter(c => getClassStatus(c) === 'upcoming').length;
+  const totalSessions = classes.reduce((a, c) => a + c.sessions.length, 0);
+  const completedSessions = classes.reduce((a, c) => a + completedCount(c), 0);
+
+  document.getElementById('statsRow').innerHTML = [
+    { v: classes.length, l: '전체 클래스' },
+    { v: ongoing, l: '진행 중' },
+    { v: upcoming, l: '개강 예정' },
+    { v: `${completedSessions}/${totalSessions}`, l: '완료 회차' },
+  ].map(s => `<div class="stat-card glass"><div class="stat-value">${s.v}</div><div class="stat-label">${s.l}</div></div>`).join('');
+
+  const filters = [
+    { key: 'all', label: '전체' },
+    { key: 'ongoing', label: '진행 중' },
+    { key: 'upcoming', label: '예정' },
+    { key: 'done', label: '완료' },
+  ];
+  document.getElementById('filterBar').innerHTML = filters.map(f =>
+    `<button class="filter-btn ${activeFilter === f.key ? 'active' : ''}" onclick="setFilter('${f.key}')">${f.label}</button>`
+  ).join('');
+
+  const filtered = activeFilter === 'all' ? classes : classes.filter(c => getClassStatus(c) === activeFilter);
+  renderGantt(filtered);
+  renderCards(filtered);
+}
+
+function setFilter(f) { activeFilter = f; render(); }
+
+function renderGantt(list) {
+  let allDates = [];
+  list.forEach(c => c.sessions.forEach(s => allDates.push(parseDate(s.date))));
+  if (!allDates.length) {
+    document.getElementById('ganttWrapper').innerHTML = '<p style="color:#94a3b8;text-align:center;padding:24px;">표시할 일정이 없습니다.</p>';
+    return;
+  }
+
+  const minDate = new Date(Math.min(...allDates));
+  const maxDate = new Date(Math.max(...allDates));
+  minDate.setDate(minDate.getDate() - 2);
+  maxDate.setDate(maxDate.getDate() + 2);
+
+  const totalDays = diffDays(maxDate, minDate) + 1;
+  const dates = [];
+  for (let i = 0; i < totalDays; i++) {
+    const d = new Date(minDate); d.setDate(d.getDate() + i); dates.push(d);
+  }
+
+  const todayIdx = dates.findIndex(d => d.getTime() === TODAY.getTime());
+
+  let headerCells = '<th></th>';
+  dates.forEach((d, i) => {
+    const show = d.getDay() === 1 || i === 0;
+    headerCells += `<th style="position:relative;">${show ? formatKR(d) : ''}</th>`;
+  });
+
+  let rows = '';
+  list.forEach((cls, ci) => {
+    const color = COLORS[ci % COLORS.length];
+    const firstIdx = dates.findIndex(d => d.getTime() === parseDate(cls.sessions[0].date).getTime());
+    const lastIdx = dates.findIndex(d => d.getTime() === parseDate(cls.sessions[cls.sessions.length - 1].date).getTime());
+
+    const isDone = getClassStatus(cls) === 'done';
+    let cells = `<td class="row-label ${isDone ? 'row-done' : ''}">${cls.icon} ${cls.name.length > 22 ? cls.name.slice(0,22)+'…' : cls.name}</td>`;
+    dates.forEach((d, di) => {
+      let content = '';
+      if (di === firstIdx && firstIdx >= 0 && lastIdx >= 0) {
+        const span = lastIdx - firstIdx + 1;
+        const w = `calc(${span * 100}% + ${span - 1}px)`;
+        const barOpacity = isDone ? 'opacity:0.35;' : '';
+        content = `<div class="bar" style="left:0;width:${w};background:${color};${barOpacity}">${cls.sessions.length}회</div>`;
+      }
+      let todayLine = '';
+      if (di === todayIdx) {
+        todayLine = `<div class="today-line" style="left:50%;"></div>`;
+        if (ci === 0) todayLine += `<div class="today-marker" style="left:50%;">TODAY</div>`;
+      }
+      cells += `<td class="bar-cell">${content}${todayLine}</td>`;
+    });
+    rows += `<tr>${cells}</tr>`;
+  });
+
+  document.getElementById('ganttWrapper').innerHTML =
+    `<table class="gantt"><thead><tr>${headerCells}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function renderCards(list) {
+  document.getElementById('cardsGrid').innerHTML = list.map((cls, ci) => {
+    const status = getClassStatus(cls);
+    const dday = getDDay(cls);
+    const color = COLORS[ci % COLORS.length];
+    const done = completedCount(cls);
+    const total = cls.sessions.length;
+    const pct = Math.round((done / total) * 100);
+
+    let scheduleRows = cls.sessions.map(s => {
+      const sd = parseDate(s.date);
+      let rowClass = '';
+      if (sd < TODAY) rowClass = 'past-row';
+      else if (sd.getTime() === TODAY.getTime()) rowClass = 'today-row';
+      else if (!cls.sessions.some(ss => { const ssd = parseDate(ss.date); return ssd >= TODAY && ssd < sd; })) rowClass = 'next-row';
+      return `<tr class="${rowClass}"><td>${s.n}회</td><td>${formatKR(sd)}</td><td>${s.time}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.topic}</td></tr>`;
+    }).join('');
+
+    const statusBadge = status === 'ongoing' ? '<span class="card-badge badge-ongoing">진행 중</span>'
+      : status === 'upcoming' ? '<span class="card-badge badge-upcoming">예정</span>'
+      : '<span class="card-badge badge-done">완료</span>';
+
+    return `
+      <div class="class-card glass ${status === 'done' ? 'past' : ''}">
+        <div class="card-accent" style="background:${color};"></div>
+        <div class="card-body">
+          <div class="card-header">
+            <div class="card-title">${cls.icon} ${cls.name}</div>
+            ${statusBadge}
+          </div>
+          <div class="card-meta">
+            ${cls.instructor ? `<span>👤 ${cls.instructor}</span>` : ''}
+            <span>📋 ${cls.type}</span>
+            <span>💰 ${cls.originalPrice ? `<s style="color:#94a3b8">${cls.originalPrice}</s> <b style="color:#dc2626">${cls.price}</b> <span class="sale-tag">${cls.saleLabel}</span>` : cls.price}</span>
+            <span>📅 총 ${total}회</span>
+          </div>
+          <div class="dday-chip dday-${dday.type}">
+            ${dday.label} ${dday.text}
+          </div>
+          <table class="schedule-table">
+            <thead><tr><th>회차</th><th>날짜</th><th>시간</th><th>주제</th></tr></thead>
+            <tbody>${scheduleRows}</tbody>
+          </table>
+          <div class="card-footer">
+            <button class="ics-btn" onclick="downloadICS(classes[${classes.indexOf(cls)}])">📥 캘린더 (.ics)</button>
+            <div class="progress-bar-wrap">
+              <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${color};"></div></div>
+              <span class="progress-text">${done}/${total}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+render();
+</script>
+</body>
+</html>

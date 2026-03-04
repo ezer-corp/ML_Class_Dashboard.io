@@ -41,10 +41,8 @@
   }
   .header-left { display: flex; align-items: center; gap: 14px; }
   .header-logo {
-    width: 44px; height: 44px; border-radius: 12px;
-    background: linear-gradient(135deg, #6366f1, #3b82f6);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem; color: #fff; font-weight: 700;
+    height: 44px; width: auto; max-width: 160px;
+    object-fit: contain; display: block;
   }
   .header h1 { font-size: 1.6rem; font-weight: 700; color: #0f172a; letter-spacing: -0.3px; }
   .header .subtitle { font-size: 0.9rem; color: #94a3b8; font-weight: 400; margin-top: 2px; }
@@ -72,17 +70,32 @@
   .stat-label { font-size: 0.88rem; color: #94a3b8; margin-top: 4px; font-weight: 500; }
 
   /* ── Filter ── */
-  .filter-bar { display: flex; gap: 6px; margin-bottom: 20px; }
-  .filter-btn {
-    padding: 8px 20px; border-radius: 10px;
-    border: 1px solid #e2e8f0; background: #fff; color: #64748b;
-    cursor: pointer; font-size: 0.92rem; font-weight: 500;
-    transition: all 0.15s; font-family: inherit;
+  .filter-bar {
+    display: flex; gap: 8px; margin-bottom: 20px;
+    background: rgba(255,255,255,0.7); backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 14px; padding: 8px 10px;
+    box-shadow: 0 2px 10px rgba(99,102,241,0.07);
+    width: fit-content;
   }
-  .filter-btn:hover { border-color: #6366f1; color: #6366f1; }
+  .filter-btn {
+    padding: 9px 22px; border-radius: 10px;
+    border: 1.5px solid #e2e8f0; background: #f8fafc; color: #64748b;
+    cursor: pointer; font-size: 0.92rem; font-weight: 600;
+    transition: all 0.18s; font-family: inherit;
+    letter-spacing: 0.1px;
+  }
+  .filter-btn:hover {
+    border-color: #6366f1; color: #6366f1; background: #eef2ff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(99,102,241,0.15);
+  }
   .filter-btn.active {
-    background: #6366f1; color: #fff; border-color: #6366f1;
-    box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff; border-color: transparent;
+    box-shadow: 0 3px 12px rgba(99,102,241,0.35);
+    transform: translateY(-1px);
   }
 
   /* ── Gantt ── */
@@ -169,11 +182,18 @@
   .dday-imminent { background: #fffbeb; color: #d97706; }
 
   /* Schedule table */
-  .schedule-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; table-layout: fixed; }
+  .schedule-scroll {
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    margin: 0 -4px; padding: 0 4px 4px;
+  }
+  .schedule-scroll::-webkit-scrollbar { height: 4px; }
+  .schedule-scroll::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 2px; }
+
+  .schedule-table { width: 100%; min-width: 480px; border-collapse: collapse; margin-bottom: 12px; }
   .schedule-table colgroup .col-n    { width: 42px; }
   .schedule-table colgroup .col-date { width: 90px; }
   .schedule-table colgroup .col-time { width: 96px; }
-  .schedule-table colgroup .col-topic { width: auto; }
+  .schedule-table colgroup .col-topic { width: auto; min-width: 180px; }
   .schedule-table th {
     text-align: left; padding: 8px 10px; font-size: 0.78rem; font-weight: 600;
     color: #94a3b8; border-bottom: 1px solid #e2e8f0; text-transform: uppercase;
@@ -182,7 +202,6 @@
   .schedule-table td {
     padding: 8px 10px; font-size: 0.85rem; color: #334155;
     border-bottom: 1px solid #f1f5f9; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis;
   }
   .schedule-table tr:last-child td { border-bottom: none; }
   .schedule-table tr.past-row td { color: #cbd5e1; text-decoration: line-through; }
@@ -194,13 +213,20 @@
     padding-top: 12px; border-top: 1px solid #f1f5f9;
   }
   .ics-btn {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 7px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500;
-    background: #f8fafc; border: 1px solid #e2e8f0;
-    color: #475569; cursor: pointer; text-decoration: none;
-    transition: all 0.15s; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 18px; border-radius: 9px; font-size: 0.85rem; font-weight: 600;
+    background: linear-gradient(135deg, #f0f4ff, #e8edff);
+    border: 1.5px solid #c7d2fe;
+    color: #4f46e5; cursor: pointer; text-decoration: none;
+    transition: all 0.18s; font-family: inherit;
+    box-shadow: 0 1px 4px rgba(99,102,241,0.12);
   }
-  .ics-btn:hover { background: #eef2ff; border-color: #6366f1; color: #4f46e5; }
+  .ics-btn:hover {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    border-color: transparent; color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+  }
   .progress-bar-wrap {
     display: flex; align-items: center; gap: 8px;
   }
@@ -220,10 +246,68 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
+  /* ── Tablet ── */
   @media (max-width: 900px) {
     .cards-grid { grid-template-columns: 1fr; }
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .header { flex-direction: column; align-items: flex-start; }
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 640px) {
+    /* Layout */
+    .container { padding: 14px 12px; }
+
+    /* Header */
+    .header { padding: 16px 18px; gap: 8px; }
+    .header-logo { height: 34px; }
+    .header h1 { font-size: 1.15rem; }
+    .header .subtitle { font-size: 0.75rem; display: none; } /* 주소는 모바일에서 숨김 */
+    .today-badge { font-size: 0.82rem; padding: 6px 12px; align-self: flex-start; }
+
+    /* Stats */
+    .stats-row { gap: 8px; }
+    .stat-card { padding: 14px 10px; }
+    .stat-value { font-size: 1.6rem; }
+    .stat-label { font-size: 0.8rem; }
+
+    /* Filter bar — 전체 너비, 가로 스크롤 */
+    .filter-bar {
+      width: 100%; overflow-x: auto; flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; /* Firefox */
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-btn { white-space: nowrap; flex-shrink: 0; padding: 8px 16px; }
+
+    /* Gantt */
+    .timeline-section { padding: 16px 14px; }
+    .gantt .row-label { min-width: 130px; font-size: 0.78rem; }
+
+    /* Cards */
+    .card-body { padding: 16px 14px 12px; }
+    .card-title { font-size: 0.98rem; }
+    .card-meta { gap: 8px; font-size: 0.8rem; }
+
+    /* 카드 푸터 — ICS 버튼 전체 너비 */
+    .card-footer { flex-direction: column; gap: 10px; align-items: stretch; }
+    .ics-btn { width: 100%; justify-content: center; padding: 10px 18px; }
+    .progress-bar-wrap { justify-content: flex-end; }
+    .progress-track { width: 80px; }
+
+    /* Section title */
+    .section-title { font-size: 1rem; }
+
+    /* Footer */
+    .footer { font-size: 0.78rem; padding: 12px; }
+  }
+
+  /* ── Very small (≤360px) ── */
+  @media (max-width: 360px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .stat-value { font-size: 1.4rem; }
+    .header h1 { font-size: 1rem; }
+    .filter-btn { padding: 7px 12px; font-size: 0.84rem; }
   }
 </style>
 </head>
@@ -231,7 +315,7 @@
 <div class="container">
   <div class="header glass">
     <div class="header-left">
-      <div class="header-logo">M</div>
+      <img class="header-logo" src="ml_logo_500-bg.png" alt="멘토라이브러리 로고">
       <div>
         <h1>멘토라이브러리 클래스 대시보드</h1>
         <div class="subtitle">서울특별시 강남구 영동대로85길 38 KC빌딩 9층</div>
@@ -441,7 +525,8 @@ function render() {
     `<button class="filter-btn ${activeFilter === f.key ? 'active' : ''}" onclick="setFilter('${f.key}')">${f.label}</button>`
   ).join('');
 
-  const filtered = activeFilter === 'all' ? classes : classes.filter(c => getClassStatus(c) === activeFilter);
+  const filtered = (activeFilter === 'all' ? classes : classes.filter(c => getClassStatus(c) === activeFilter))
+    .slice().sort((a, b) => parseDate(a.sessions[0].date) - parseDate(b.sessions[0].date));
   renderGantt(filtered);
   renderCards(filtered);
 }
@@ -459,7 +544,6 @@ function renderGantt(list) {
   const minDate = new Date(Math.min(...allDates));
   const maxDate = new Date(Math.max(...allDates));
   minDate.setDate(minDate.getDate() - 2);
-  maxDate.setDate(maxDate.getDate() + 2);
 
   const totalDays = diffDays(maxDate, minDate) + 1;
   const dates = [];
@@ -487,7 +571,7 @@ function renderGantt(list) {
       let content = '';
       if (di === firstIdx && firstIdx >= 0 && lastIdx >= 0) {
         const span = lastIdx - firstIdx + 1;
-        const w = `calc(${span * 100}% + ${span - 1}px)`;
+        const w = `${span * 100}%`;
         const barOpacity = isDone ? 'opacity:0.35;' : '';
         content = `<div class="bar" style="left:0;width:${w};background:${color};${barOpacity}">${cls.sessions.length}회</div>`;
       }
@@ -544,11 +628,13 @@ function renderCards(list) {
           <div class="dday-chip dday-${dday.type}">
             ${dday.label} ${dday.text}
           </div>
-          <table class="schedule-table">
-            <colgroup><col class="col-n"><col class="col-date"><col class="col-time"><col class="col-topic"></colgroup>
-            <thead><tr><th>회차</th><th>날짜</th><th>시간</th><th>주제</th></tr></thead>
-            <tbody>${scheduleRows}</tbody>
-          </table>
+          <div class="schedule-scroll">
+            <table class="schedule-table">
+              <colgroup><col class="col-n"><col class="col-date"><col class="col-time"><col class="col-topic"></colgroup>
+              <thead><tr><th>회차</th><th>날짜</th><th>시간</th><th>주제</th></tr></thead>
+              <tbody>${scheduleRows}</tbody>
+            </table>
+          </div>
           <div class="card-footer">
             <button class="ics-btn" onclick="downloadICS(classes[${classes.indexOf(cls)}])">📥 캘린더 (.ics)</button>
             <div class="progress-bar-wrap">

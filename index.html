@@ -69,15 +69,44 @@
   .stat-value { font-size: 2.1rem; font-weight: 700; color: #0f172a; }
   .stat-label { font-size: 0.88rem; color: #94a3b8; margin-top: 4px; font-weight: 500; }
 
+  /* ── Controls row (filter + sort) ── */
+  .controls-row {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+
   /* ── Filter ── */
   .filter-bar {
-    display: flex; gap: 8px; margin-bottom: 20px;
+    display: flex; gap: 8px;
     background: rgba(255,255,255,0.7); backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.85);
     border-radius: 14px; padding: 8px 10px;
     box-shadow: 0 2px 10px rgba(99,102,241,0.07);
     width: fit-content;
+  }
+
+  /* ── Sort ── */
+  .sort-bar {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.7); backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 14px; padding: 8px 10px;
+    box-shadow: 0 2px 10px rgba(99,102,241,0.07);
+  }
+  .sort-label { font-size: 0.78rem; font-weight: 500; color: #94a3b8; padding: 0 2px; white-space: nowrap; }
+  .sort-btn {
+    padding: 7px 16px; border-radius: 9px;
+    border: 1.5px solid #e2e8f0; background: #f8fafc; color: #64748b;
+    cursor: pointer; font-size: 0.84rem; font-weight: 600;
+    transition: all 0.18s; font-family: inherit;
+  }
+  .sort-btn:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+  .sort-btn.active {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff; border-color: transparent;
+    box-shadow: 0 3px 10px rgba(99,102,241,0.3);
   }
   .filter-btn {
     padding: 9px 22px; border-radius: 10px;
@@ -171,11 +200,12 @@
     font-weight: 700; background: #fef2f2; color: #dc2626; letter-spacing: 0.3px;
   }
 
+  .dday-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
   .dday-chip {
     display: inline-flex; align-items: center; gap: 4px;
     padding: 5px 14px; border-radius: 8px; font-size: 0.9rem; font-weight: 700;
-    margin-bottom: 12px;
   }
+  .dday-end { font-size: 0.82rem; opacity: 0.9; }
   .dday-future { background: #f0fdf4; color: #16a34a; }
   .dday-today { background: #fef2f2; color: #dc2626; }
   .dday-past { background: #f8fafc; color: #94a3b8; }
@@ -271,6 +301,9 @@
     .stat-value { font-size: 1.6rem; }
     .stat-label { font-size: 0.8rem; }
 
+    /* Controls row — 세로 스택 */
+    .controls-row { flex-direction: column; }
+
     /* Filter bar — 전체 너비, 가로 스크롤 */
     .filter-bar {
       width: 100%; overflow-x: auto; flex-wrap: nowrap;
@@ -279,6 +312,10 @@
     }
     .filter-bar::-webkit-scrollbar { display: none; }
     .filter-btn { white-space: nowrap; flex-shrink: 0; padding: 8px 16px; }
+
+    /* Sort bar — 전체 너비 */
+    .sort-bar { width: 100%; }
+    .sort-btn { flex: 1; text-align: center; padding: 7px 10px; font-size: 0.82rem; }
 
     /* Gantt */
     .timeline-section { padding: 16px 14px; }
@@ -326,7 +363,10 @@
 
   <div class="stats-row" id="statsRow"></div>
 
-  <div class="filter-bar" id="filterBar"></div>
+  <div class="controls-row">
+    <div class="filter-bar" id="filterBar"></div>
+    <div class="sort-bar" id="sortBar"></div>
+  </div>
 
   <div class="timeline-section glass" id="timelineSection">
     <div class="section-title"><span>📊</span> 클래스 기간 차트</div>
@@ -496,8 +536,18 @@ function downloadICS(cls) {
   URL.revokeObjectURL(a.href);
 }
 
+// End D-day
+function getEndDDay(cls) {
+  const last = parseDate(cls.sessions[cls.sessions.length - 1].date);
+  const d = diffDays(last, TODAY);
+  if (d < 0) return null;
+  if (d === 0) return { text: 'D-Day', type: 'today', label: '오늘 종료' };
+  return { text: `D-${d}`, type: d <= 7 ? 'imminent' : 'future', label: '종료까지' };
+}
+
 // --- Render ---
 let activeFilter = 'all';
+let activeSortKey = 'start';
 
 function render() {
   document.getElementById('todayBadge').textContent =
@@ -525,13 +575,29 @@ function render() {
     `<button class="filter-btn ${activeFilter === f.key ? 'active' : ''}" onclick="setFilter('${f.key}')">${f.label}</button>`
   ).join('');
 
+  const sorts = [
+    { key: 'start', label: '시작일순' },
+    { key: 'end',   label: '종료일순' },
+  ];
+  document.getElementById('sortBar').innerHTML =
+    `<span class="sort-label">정렬</span>` +
+    sorts.map(s =>
+      `<button class="sort-btn ${activeSortKey === s.key ? 'active' : ''}" onclick="setSort('${s.key}')">${s.label}</button>`
+    ).join('');
+
   const filtered = (activeFilter === 'all' ? classes : classes.filter(c => getClassStatus(c) === activeFilter))
-    .slice().sort((a, b) => parseDate(a.sessions[0].date) - parseDate(b.sessions[0].date));
+    .slice().sort((a, b) => {
+      if (activeSortKey === 'end') {
+        return parseDate(a.sessions[a.sessions.length-1].date) - parseDate(b.sessions[b.sessions.length-1].date);
+      }
+      return parseDate(a.sessions[0].date) - parseDate(b.sessions[0].date);
+    });
   renderGantt(filtered);
   renderCards(filtered);
 }
 
 function setFilter(f) { activeFilter = f; render(); }
+function setSort(k) { activeSortKey = k; render(); }
 
 function renderGantt(list) {
   let allDates = [];
@@ -597,6 +663,7 @@ function renderCards(list) {
     const done = completedCount(cls);
     const total = cls.sessions.length;
     const pct = Math.round((done / total) * 100);
+    const endDday = getEndDDay(cls);
 
     let scheduleRows = cls.sessions.map(s => {
       const sd = parseDate(s.date);
@@ -625,8 +692,9 @@ function renderCards(list) {
             <span>💰 ${cls.originalPrice ? `<s style="color:#94a3b8">${cls.originalPrice}</s> <b style="color:#dc2626">${cls.price}</b> <span class="sale-tag">${cls.saleLabel}</span>` : cls.price}</span>
             <span>📅 총 ${total}회</span>
           </div>
-          <div class="dday-chip dday-${dday.type}">
-            ${dday.label} ${dday.text}
+          <div class="dday-row">
+            <div class="dday-chip dday-${dday.type}">${dday.label} ${dday.text}</div>
+            ${endDday ? `<div class="dday-chip dday-end dday-${endDday.type}">${endDday.label} ${endDday.text}</div>` : ''}
           </div>
           <div class="schedule-scroll">
             <table class="schedule-table">
